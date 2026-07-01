@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 5fb1b95556a2a70448901a4f50d7acfb
+timeCreated: 1488215444
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Angella
+  fontNames:
+  - Angella
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
