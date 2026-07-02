@@ -11,7 +11,7 @@ namespace GameBull
     // Lives on the GameBullLobby root. Wires the mode-picker panel to real /context data at runtime.
     public class GameBullLobbyController : MonoBehaviour
     {
-        public const int BUILD_VERSION = 19;
+        public const int BUILD_VERSION = 20;
         private static int _loadContextCalls;
         private static bool _joinPanelShownOnce = false;
 
@@ -129,6 +129,9 @@ namespace GameBull
 
         [Header("Splash logo (drag the Title Image here)")]
         public UnityEngine.UI.Image splashLogoImage;
+
+        [Header("Primary color targets (drag card GameObjects with Image here)")]
+        public GameObject[] primaryColorTargets;
 
         // Filled from /context so other panels/logic can read it.
         public GameContext Context { get; private set; }
@@ -303,6 +306,27 @@ namespace GameBull
             }
 
             Debug.Log("[GB-LOG] BG has no Image or SpriteRenderer");
+        }
+
+        // Tint every GameObject in primaryColorTargets (if it has an Image) with the partner primary color.
+        private void ApplyPrimaryColorTargets()
+        {
+            if (Context == null || Context.customization == null || Context.customization.colors == null) return;
+            string hex = Context.customization.colors.primary;
+            if (string.IsNullOrEmpty(hex)) return;
+            if (!UnityEngine.ColorUtility.TryParseHtmlString(hex, out Color c)) return;
+            if (primaryColorTargets == null || primaryColorTargets.Length == 0) return;
+
+            int applied = 0;
+            foreach (var go in primaryColorTargets)
+            {
+                if (go == null) continue;
+                var img = go.GetComponent<UnityEngine.UI.Image>();
+                if (img == null) continue;
+                img.color = c;
+                applied++;
+            }
+            Debug.Log("[GB-LOG] Primary color applied to " + applied + " targets");
         }
 
         // Find the partner's custom "ball" asset in context and download it into PartnerBallSprite,
@@ -635,6 +659,7 @@ namespace GameBull
             // Kick off partner asset downloads as soon as context is ready (fire-and-forget).
             LoadPartnerBallAsset();
             LoadPartnerBackgroundAsset();
+            ApplyPrimaryColorTargets();
 
             // Wire button clicks once the lobby is loaded.
             if (soloButton)       soloButton.onClick.AddListener(OnSoloClicked);

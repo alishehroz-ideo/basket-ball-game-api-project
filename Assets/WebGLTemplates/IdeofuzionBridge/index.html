@@ -14,17 +14,56 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: #231F20;
+        background: #0e0e12;
       }
       #unity-container {
         position: fixed;
         inset: 0;
-        background: #231F20;
+        background-color: #0e0e12;
+        background-image: url('TemplateData/BasketBall_Hero_BG.jpg');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      @media (max-aspect-ratio: 1/1) {
+        #unity-container { background-size: cover; }
       }
       #unity-canvas {
         display: block;
         position: absolute;
-        background: #231F20;
+        background: transparent;
+      }
+      #unity-logo {
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 12px;
+        background: url('TemplateData/game-icon.jpg') center / contain no-repeat;
+      }
+      /* Custom rounded progress bar — overrides PNG images from style.css */
+      #unity-progress-bar-empty {
+        width: 300px;
+        height: 18px;
+        background: #d9d9d9 !important;
+        background-image: none !important;
+        border-radius: 9px;
+        overflow: hidden;
+        margin: 12px auto 0;
+      }
+      #unity-progress-bar-full {
+        width: 0%;
+        height: 100%;
+        background: #1C3A5B !important;
+        background-image: none !important;
+        margin-top: 0 !important;
+        border-radius: 9px;
+        transition: width 0.1s ease;
+      }
+      #unity-progress-percent {
+        text-align: center;
+        color: #F2F2F2;
+        font-size: 14px;
+        font-family: arial, sans-serif;
+        margin-top: 6px;
       }
 
       #unity-loading-bar {
@@ -53,6 +92,7 @@
         <div id="unity-progress-bar-empty">
           <div id="unity-progress-bar-full"></div>
         </div>
+        <div id="unity-progress-percent">0%</div>
       </div>
       <div id="unity-warning"> </div>
 
@@ -125,13 +165,20 @@
 
       document.querySelector("#unity-loading-bar").style.display = "block";
 
+      function setLoadProgress(p) {
+        document.querySelector("#unity-progress-bar-full").style.width = Math.round(p * 100) + "%";
+        document.querySelector("#unity-progress-percent").innerText = Math.round(p * 100) + "%";
+      }
+
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
-        createUnityInstance(document.querySelector("#unity-canvas"), config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
+        createUnityInstance(document.querySelector("#unity-canvas"), config, setLoadProgress)
+        .then((unityInstance) => {
+          setLoadProgress(1);
           document.querySelector("#unity-loading-bar").style.display = "none";
+          var logo = document.querySelector("#unity-logo");
+          if (logo) { logo.style.display = "none"; logo.style.visibility = "hidden"; logo.style.opacity = "0"; }
 
           resizeCanvas();
 

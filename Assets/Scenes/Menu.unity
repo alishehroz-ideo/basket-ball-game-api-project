@@ -1407,8 +1407,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294952822
-  m_fontColor: {r: 0.4627451, g: 0.78039217, b: 1, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4725,8 +4725,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294398439
-  m_fontColor: {r: 0.90588236, g: 0.31764707, b: 0.96862745, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -6441,8 +6441,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4289901234
-  m_fontColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -7112,14 +7112,14 @@ MonoBehaviour:
   createRoomButton: {fileID: 551432444}
   createRoomBackButton: {fileID: 1111258072}
   sharePanel: {fileID: 1757350753}
-  roomNameText: {fileID: 0}
+  roomNameText: {fileID: 58684281}
   joinUrlText: {fileID: 1387781300}
   copyButton: {fileID: 1184935178}
   playersText: {fileID: 440995475}
   playAsHostButton: {fileID: 1601303217}
   shareBackButton: {fileID: 1468826680}
   joinPanel: {fileID: 1756661285}
-  joinRoomNameText: {fileID: 0}
+  joinRoomNameText: {fileID: 1025814622}
   joinPlayersText: {fileID: 738013158}
   nicknameInput: {fileID: 613744830}
   joinButton: {fileID: 1735045422}
@@ -7133,7 +7133,7 @@ MonoBehaviour:
   tournamentCardTemplate: {fileID: 1941601896}
   tournamentListBackButton: {fileID: 1268654912}
   tournamentScorePanel: {fileID: 793172993}
-  tournamentScoreHeader: {fileID: 0}
+  tournamentScoreHeader: {fileID: 2115783858}
   tournamentLbRoot: {fileID: 222665075}
   tournamentLbRowTemplate: {fileID: 509981092}
   tournamentPlayAgainButton: {fileID: 2102163462}
@@ -7160,6 +7160,16 @@ MonoBehaviour:
   backgroundObjectName: BG
   splashLogoObjectName: couponImage
   splashLogoImage: {fileID: 3301054166446821920}
+  primaryColorTargets:
+  - {fileID: 567622318}
+  - {fileID: 1739182261}
+  - {fileID: 1542638330}
+  - {fileID: 1120829023}
+  - {fileID: 1184890270}
+  - {fileID: 355325188}
+  - {fileID: 1121293907}
+  - {fileID: 2034803128}
+  - {fileID: 1577212397}
 --- !u!4 &477761716
 Transform:
   m_ObjectHideFlags: 0
@@ -13559,14 +13569,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.026922394, g: 0.3104948, b: 0.5188679, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb3db5b0868bc4f348e3d3a1dfbf32a8, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -17193,8 +17203,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294952822
-  m_fontColor: {r: 0.4627451, g: 0.78039217, b: 1, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
