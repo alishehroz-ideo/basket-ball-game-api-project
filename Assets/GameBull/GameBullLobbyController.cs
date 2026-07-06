@@ -398,8 +398,8 @@ namespace GameBull
             }
             // The mode buttons get SetActive(false) in Start()/LoadContext() based on enabledModes,
             // and those run only once on this persistent controller — so re-activate them here.
-            if (soloButton)       { soloButton.gameObject.SetActive(true);       Debug.Log("[GB-LOG] re-activated soloButton"); }
-            if (tournamentButton) { tournamentButton.gameObject.SetActive(true); Debug.Log("[GB-LOG] re-activated tournamentButton"); }
+            if (soloButton)       { bool solo = HasMode("HEAD_TO_HEAD_1V1"); soloButton.gameObject.SetActive(solo); Debug.Log("[GB-LOG] ShowLobbyHome soloButton active=" + solo); }
+            if (tournamentButton) { bool room = HasMode("TOURNAMENT_ROOM");  tournamentButton.gameObject.SetActive(room); Debug.Log("[GB-LOG] ShowLobbyHome tournamentButton active=" + room); }
             if (openTournamentButton) openTournamentButton.gameObject.SetActive(HasMode("OPEN_TOURNAMENT"));
             if (historyMenuButton) historyMenuButton.gameObject.SetActive(true);   // always available for logged-in users
             Debug.Log("[GB-LOG] soloButton null? " + (soloButton == null) + (soloButton ? " activeSelf=" + soloButton.gameObject.activeSelf : ""));
