@@ -4,7 +4,7 @@
             {
                 "type": "System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 "key": "buildOutputDirList",
-                "value": "{\"m_Value\":\"C:/Users/Ali Shehroz/Downloads/COUPRA_GAMES/WebGL_Coupra_BasketBall URL/build;D:/WebGLBuild/BasketBall/Build;D:/WebGLBuild/BasketBall;C:/Users/Noman/Desktop/WebGLBuild/BasketBall;;;;;;\"}"
+                "value": "{\"m_Value\":\"D:/COUPRA_GAMES/WebGL_Coupra_BasketBall URL/build;C:/Users/Ali Shehroz/Downloads/COUPRA_GAMES/WebGL_Coupra_BasketBall URL/build;D:/WebGLBuild/BasketBall/Build;D:/WebGLBuild/BasketBall;C:/Users/Noman/Desktop/WebGLBuild/BasketBall;;;;;\"}"
             }
         ]
     }

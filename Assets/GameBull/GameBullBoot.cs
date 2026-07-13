@@ -30,7 +30,9 @@ namespace GameBull
             var q = ParseQuery(url);
 
             TenantSlug       = Get(q, "tenantSlug");
-            SessionToken     = Get(q, "sessionToken");
+            // v3.1 two-tier boot: the host may inject the token as "bootToken" (or plain "token")
+            // instead of "sessionToken". Accept any so /context gets a non-empty Bearer.
+            SessionToken     = Get(q, "sessionToken") ?? Get(q, "bootToken") ?? Get(q, "token");
             Seed             = Get(q, "seed");
             Mode             = Get(q, "mode");
             GameId           = Get(q, "gameId");

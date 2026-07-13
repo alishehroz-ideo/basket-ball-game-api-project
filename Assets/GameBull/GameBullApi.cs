@@ -97,6 +97,14 @@ namespace GameBull
         public int effectiveValue => value != 0 ? value : score;
     }
 
+    // POST /play/plays response (v3.1) — mint a play token before the round (spends 1 life).
+    [System.Serializable] public class PlayResult {
+        public string playToken;
+        public string seed;
+        public string mode;
+        public string expiresAt;
+    }
+
     public class RoomLeaderboard
     {
         public LeaderboardItem[] items;
@@ -193,6 +201,43 @@ namespace GameBull
         public string finishedAt;
     }
 
+    // ---------- Global Tournament API response shapes (NEW /game/global-tournaments) ----------
+
+    [System.Serializable] public class GlobalTournament {
+        public string id;
+        public string gameId;
+        public string name;
+        public string description;
+        public string startsAt;
+        public string endsAt;
+        public string prizeModel;                                              // e.g. "TENANT_GB_POINTS" | "GLORY_ONLY"
+        public System.Collections.Generic.Dictionary<string,int> prizeConfig;  // e.g. {"1":100,"2":50,"3":29}; empty for GLORY_ONLY
+        public string status;
+        public string finalizedAt;
+        public int    participantCount;
+    }
+    [System.Serializable] public class GlobalTournamentList {
+        public GlobalTournament[] items;
+    }
+    // Leaderboard shape differs from the old one: (rank, alias, score, isMe) — no entryId/finishedAt.
+    // rank/score are nullable: the server sends null for players who haven't scored yet.
+    [System.Serializable] public class GlobalLeaderboardItem {
+        public int?   rank;
+        public string alias;
+        public int?   score;
+        public bool   isMe;
+    }
+    [System.Serializable] public class GlobalLeaderboard {
+        public GlobalLeaderboardItem[] items;
+    }
+    // GET /game/global-tournaments/my-rank — caller's own standing. rank/score are null until the player scores.
+    [System.Serializable] public class GlobalMyRank {
+        public int?   rank;
+        public string alias;
+        public int?   score;
+        public bool   isMe;
+    }
+
     // ---------- My history (/me/rooms) response shapes (match live schema) ----------
 
     [System.Serializable] public class MyRoom {
@@ -217,6 +262,13 @@ namespace GameBull
 
     public static class GameBullApi
     {
+        // v3.1 two-tier play: the play token minted by MintPlay(), used to submit the solo score.
+        public static string CurrentPlayToken;
+        public static string CurrentSeed;
+        // v3.1 global tournaments: token from StartGlobalTournamentSession — used for the tournament
+        // score submit and the leaderboard/my-rank reads (NOT the boot token).
+        public static string CurrentGlobalToken;
+
         // GET the per-tenant context (colors / logo / assets).
         // Uses the gameId + tenantSlug + sessionToken that GameBullBoot read from the URL.
         public static async Task<GameContext> GetContext()
@@ -224,7 +276,9 @@ namespace GameBull
             string url = GameBullEndpoints.GameContext(GameBullBoot.GameId, GameBullBoot.TenantSlug, GameBullBoot.RoomId);
             string json = await GameBullClient.GetJson(url, GameBullBoot.SessionToken);
             if (string.IsNullOrEmpty(json)) return null;
-            return JsonConvert.DeserializeObject<GameContext>(json);
+            var result = JsonConvert.DeserializeObject<GameContext>(json);
+            Debug.Log($"[LIVES] GetContext url={url} → server lives.count={result?.lives?.count}");
+            return result;
         }
 
         // GET the public room leaderboard (no auth needed — leaderboard is public).
@@ -237,17 +291,31 @@ namespace GameBull
         }
 
         // POST a solo score (mode HEAD_TO_HEAD_1V1). Token goes in the BODY for GameBull.
+        // v3.1: the token is the PLAY token (from MintPlay), NOT the boot token.
         public static async Task<ScoreResult> SubmitSoloScore(int score, int playTimeMs)
         {
             string url  = GameBullEndpoints.SoloScore();
             string body = JsonConvert.SerializeObject(new {
-                sessionToken = GameBullBoot.SessionToken,
+                sessionToken = CurrentPlayToken,   // v3.1: score with the PLAY token, not the boot token
                 value        = score,
                 playTimeMs   = playTimeMs
             });
             string json = await GameBullClient.PostJson(url, body);
             if (string.IsNullOrEmpty(json)) return null;
             return JsonConvert.DeserializeObject<ScoreResult>(json);
+        }
+
+        // v3.1: mint a play token (POST /play/plays) BEFORE the round. Spends exactly 1 life.
+        // Token goes in the BODY as bootToken (no Bearer), same style as SubmitSoloScore.
+        // Returns null on any failure (incl. play.no_lives) — caller must NOT start the game.
+        public static async Task<PlayResult> MintPlay()
+        {
+            string url  = GameBullEndpoints.Plays();
+            string body = JsonConvert.SerializeObject(new { bootToken = GameBullBoot.SessionToken });
+            string json = await GameBullClient.PostJson(url, body);   // 2-arg, no Bearer
+            if (string.IsNullOrEmpty(json)) return null;
+            try { return JsonConvert.DeserializeObject<PlayResult>(json); }
+            catch (System.Exception e) { Debug.LogWarning("[GameBull] Play mint parse failed: " + e.Message + "\n" + json); return null; }
         }
 
         // POST a 4-player room score (mode TOURNAMENT_ROOM). Uses playerId from the URL.
@@ -359,6 +427,87 @@ namespace GameBull
             string json = await GameBullClient.GetJson(url, null);
             if (string.IsNullOrEmpty(json)) return null;
             return JsonConvert.DeserializeObject<TournamentLeaderboard>(json);
+        }
+
+        // ---------- Global Tournament API (v3.1 two-tier) ----------
+        // LIST uses the boot token. SESSION mint (spends 1 life) returns the GLOBAL token, which then
+        // authenticates the score submit + leaderboard/my-rank reads.
+
+        // LIST stays on the boot token (correct as-is).
+        public static async Task<GlobalTournamentList> ListGlobalTournaments(string phase = "active")
+        {
+            string url  = GameBullEndpoints.GlobalTournamentList(phase);
+            string json = await GameBullClient.GetJson(url, GameBullBoot.SessionToken);
+            if (string.IsNullOrEmpty(json)) return null;
+            return JsonConvert.DeserializeObject<GlobalTournamentList>(json);
+        }
+
+        // v3.1: mint a global-tournament session (POST /play/global-tournaments/{id}/sessions). SPENDS 1 LIFE.
+        // bootToken is sent as the Bearer AUTH header (confirmed via curl), empty JSON body. On success,
+        // stores the returned token as CurrentGlobalToken (used by score/leaderboard/my-rank) + the seed.
+        // Returns null on failure (incl. play.no_lives) — caller must NOT start the game.
+        public static async Task<TournamentSession> StartGlobalTournamentSession(string id)
+        {
+            Debug.Log("[LIVES] mint session — about to spend a life");
+            string url  = GameBullEndpoints.GlobalTournamentSession(id);
+            string json = await GameBullClient.PostJson(url, "{}", GameBullBoot.SessionToken);   // bootToken as Bearer header
+            Debug.Log($"[LIVES] mint returned (session null? {string.IsNullOrEmpty(json)}) — a life should now be spent server-side");
+            if (string.IsNullOrEmpty(json)) return null;
+            try
+            {
+                var sess = JsonConvert.DeserializeObject<TournamentSession>(json);
+                if (sess != null && !string.IsNullOrEmpty(sess.sessionToken))
+                {
+                    CurrentGlobalToken = sess.sessionToken;
+                    CurrentSeed        = sess.seed;
+                }
+                return sess;
+            }
+            catch (System.Exception e) { Debug.LogWarning("[GameBull] Global session parse failed: " + e.Message + "\n" + json); return null; }
+        }
+
+        // POST the final score to /play/global-tournaments/{id}/scores. Token goes in the BODY as
+        // sessionToken = the GLOBAL token from StartGlobalTournamentSession (NOT the boot/play token). No Bearer.
+        public static async Task<TournamentScoreResult> SubmitGlobalTournamentScore(string tournamentId, int value, int playTimeMs)
+        {
+            string url  = GameBullEndpoints.GlobalTournamentScore(tournamentId);
+            string body = JsonConvert.SerializeObject(new { sessionToken = CurrentGlobalToken, value = value, playTimeMs = playTimeMs });
+            string json = await GameBullClient.PostJson(url, body);   // token in body, no Bearer
+            if (string.IsNullOrEmpty(json)) return null;
+            try { return JsonConvert.DeserializeObject<TournamentScoreResult>(json); }
+            catch (System.Exception e) { Debug.LogWarning("[GameBull] Score reply parse failed: " + e.Message); return null; }
+        }
+
+        // GET the leaderboard for the token's tournament (no id — server resolves it from the token).
+        // in-game passes the global (session) token; My History passes useBootToken:true (boot token, no life cost).
+        public static async Task<GlobalLeaderboard> GetGlobalLeaderboard(bool useBootToken = false)
+        {
+            string url  = GameBullEndpoints.GlobalTournamentLeaderboard();
+            string json = await GameBullClient.GetJson(url, useBootToken ? GameBullBoot.SessionToken : CurrentGlobalToken);
+            if (string.IsNullOrEmpty(json)) return null;
+            try { return JsonConvert.DeserializeObject<GlobalLeaderboard>(json); }
+            catch (System.Exception e) { Debug.LogWarning("[GameBull] Leaderboard parse failed: " + e.Message + "\n" + json); return null; }
+        }
+
+        // GET a SPECIFIC tournament's board by id (boot token, no life cost). Used by My History for
+        // both active and past tournaments — /{id}/leaderboard works for any published/ended one.
+        public static async Task<GlobalLeaderboard> GetGlobalLeaderboardById(string id)
+        {
+            string url  = GameBullEndpoints.GlobalTournamentLeaderboardById(id);
+            string json = await GameBullClient.GetJson(url, GameBullBoot.SessionToken);   // BOOT token
+            if (string.IsNullOrEmpty(json)) return null;
+            try { return JsonConvert.DeserializeObject<GlobalLeaderboard>(json); }
+            catch (System.Exception e) { Debug.LogWarning("[GameBull] Leaderboard-by-id parse failed: " + e.Message + "\n" + json); return null; }
+        }
+
+        // GET the caller's own rank for the global token's tournament (rank/score null until they score).
+        public static async Task<GlobalMyRank> GetGlobalMyRank()
+        {
+            string url  = GameBullEndpoints.GlobalTournamentMyRank();
+            string json = await GameBullClient.GetJson(url, CurrentGlobalToken);   // Bearer = GLOBAL token
+            if (string.IsNullOrEmpty(json)) return null;
+            try { return JsonConvert.DeserializeObject<GlobalMyRank>(json); }
+            catch (System.Exception e) { Debug.LogWarning("[GameBull] My-rank parse failed: " + e.Message + "\n" + json); return null; }
         }
 
         // GET the current user's room history (needs the Bearer session token).
