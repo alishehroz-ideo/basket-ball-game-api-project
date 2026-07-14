@@ -419,12 +419,16 @@ PrefabInstance:
       value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 661724076053185107, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
+      propertyPath: m_text
+      value: "\u9806\u4F4D"
+      objectReference: {fileID: 0}
+    - target: {fileID: 661724076053185107, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
       propertyPath: m_fontSize
-      value: 46.91
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 661724076053185107, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
       propertyPath: m_fontSizeBase
-      value: 46.91
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 739280178400910545, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
       propertyPath: m_text
@@ -432,11 +436,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 739280178400910545, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
       propertyPath: m_fontSize
-      value: 33
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 739280178400910545, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
       propertyPath: m_fontSizeBase
-      value: 33
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 1223039643175624266, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -685,6 +689,10 @@ PrefabInstance:
     - target: {fileID: 8644629683657262892, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
       propertyPath: m_fontSize
       value: 47.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 8644629683657262892, guid: 55876fb88b418cc489ccf88e93bed4ec, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
